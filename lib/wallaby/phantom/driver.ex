@@ -11,9 +11,8 @@ defmodule Wallaby.Phantom.Driver do
   @type params :: %{using: String.t, value: query}
   @type locator :: Session.t | Element.t
 
-  @type response_errors ::
-    {:error, :invalid_selector} |
-    {:error, :stale_reference}
+  @type response_errors :: {:error, :invalid_selector}
+                         | {:error, :stale_reference}
 
   @spec create(pid, Keyword.t) :: {:ok, Session.t}
   def create(server, opts) do
@@ -531,8 +530,12 @@ defmodule Wallaby.Phantom.Driver do
     |> handle_response
   end
 
-  defp handle_response({:error, %HTTPoison.Error{}} = response), do: response
-  defp handle_response({:ok, %HTTPoison.Response{status_code: 204}}), do: {:ok, %{"value" => %{}}}
+  defp handle_response({:error, %HTTPoison.Error{}=error}) do
+    raise "There was an internal error communicating with webdriver: #{error.reason}"
+  end
+  defp handle_response({:ok, %HTTPoison.Response{status_code: 204}}) do
+    {:ok, %{"value" => %{}}}
+  end
   defp handle_response({:ok, %HTTPoison.Response{body: body}}) do
     with {:ok, decoded} <- Poison.decode(body),
          {:ok, validated} <- check_for_response_errors(decoded),
