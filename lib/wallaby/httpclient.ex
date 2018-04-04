@@ -88,7 +88,8 @@ defmodule Wallaby.HTTPClient do
 
   defp headers do
     [{"Accept", "application/json"},
-      {"Content-Type", "application/json"}]
+     {"Content-Type", "application/json"},
+     {"Connection", "keep-alive"}]
   end
 
   def to_params({:xpath, xpath}) do
